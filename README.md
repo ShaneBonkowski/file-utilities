@@ -27,17 +27,33 @@ git clone https://github.com/ShaneBonkowski/file-utilities.git
 cd file-utilities
 ```
 
-### 2. (Optional) Create a virtual environment:
+### 2. (Optional) Create + activate a virtual environment:
 
 ```bash
 python -m venv venv
 ```
 
-### 3. Install python dependencies:
+Windows
 
 ```bash
-pip install -r requirements.txt
+venv\Scripts\activate
 ```
+
+macOS/Linux
+
+```bash
+source venv/bin/activate
+```
+
+### 3. Install python dependencies:
+
+Since all dependencies are specified in pyproject.toml, simply from the root directory of this project call:
+
+```bash
+pip install .
+```
+
+This will install the entire package and all dependencies.
 
 ## Development
 
@@ -122,5 +138,5 @@ Import the package and use its utilities:
 ```python
 from file_utilities import image_utils
 
-image_utils.some_function("example.txt")
+image_utils.resize_png("/path/to/picture.png", x=400, y=200)
 ```
