@@ -20,20 +20,20 @@ pip install virtualenv
 
 ## Installation
 
-1. Clone the repository:
+### 1. Clone the repository:
 
 ```bash
 git clone https://github.com/ShaneBonkowski/file-utilities.git
 cd file-utilities
 ```
 
-2. (Optional) Create a virtual environment:
+### 2. (Optional) Create a virtual environment:
 
 ```bash
 python -m venv venv
 ```
 
-3. Install python dependencies:
+### 3. Install python dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -57,23 +57,23 @@ source venv/bin/activate
 
 ### Release
 
-1. Commit Changes:
+#### 1. Commit Changes:
 
 Ensure all changes are committed to the `main` branch.
 
-2. Update Version:
+#### 2. Update Version:
 
 - Open the pyproject.toml file and increment the version number under [project].
 - Use semantic versioning (e.g., 0.1.1 → 0.2.0).
 
-3. Tag the Release off of the `main` branch:
+#### 3. Tag the Release off of the `main` branch:
 
 ```bash
 git tag -a v<new_version> -m "Release <new_version>"
 git push origin v<new_version>
 ```
 
-4. Create a Release Page on GitHub:
+#### 4. Create a Release Page on GitHub:
 
 - Go to the `Releases` tab of the GitHub repository.
 - Click `Draft a new release`, select the tag that was just pushed, and provide a release title and description.
@@ -83,19 +83,19 @@ git push origin v<new_version>
 
 Follow the above `Release` steps before deploying!
 
-1. Ensure you have build installed:
+#### 1. Ensure you have build installed:
 
 ```bash
 pip install build
 ```
 
-2. Checkout the latest release tag:
+#### 2. Checkout the latest release tag:
 
 ```bash
 git checkout tags/v<new_version>
 ```
 
-3. Build the package:
+#### 3. Build the package:
 
 ```bash
 python -m build
@@ -103,13 +103,13 @@ python -m build
 
 This generates a `dist/` directory containing `.tar.gz` and `.whl` files.
 
-4. (Optional) Install twine for publishing:
+#### 4. (Optional) Install twine for publishing:
 
 ```bash
 pip install twine
 ```
 
-5. Upload the package to PyPI:
+#### 5. Upload the package to PyPI:
 
 ```bash
 twine upload dist/*
