@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "file_utilities"
-version = "0.2.0"
+version = "0.3.0"
 description = "A collection of Python utilities for file handling, including reading, writing, organizing, and converting various file types. Designed for efficiency and ease of use."
 authors = [{ name = "Shane Bonkowski", email = "3ravens3@gmail.com" }]
 dependencies = [
-    "pillow>=11.0.0"
+    "pillow>=11.0.0",
+    "pytest>=8.3.0"
 ]
 requires-python = ">=3.7"
 license = { text = "MIT" }  
