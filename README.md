@@ -133,10 +133,20 @@ twine upload dist/*
 
 ## Usage
 
-Import the package and use its utilities:
+Resize an image:
 
 ```python
-from file_utilities import image_utils
+from file_utilities.image.image import ImageFile
 
-image_utils.resize_png("/path/to/picture.png", x=400, y=200)
+image = ImageFile("/path/to/picture.png")
+image.resize(400, 200)
+```
+
+Convert to another image type:
+
+```python
+from file_utilities.image.image import ImageFile
+
+image = ImageFile("/path/to/picture.png")
+image.convert_format("webp")
 ```
