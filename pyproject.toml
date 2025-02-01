@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "file_utilities"
 version = "1.0.0"
-description = "A collection of Python utilities for file handling, including reading, writing, organizing, and converting various file types. Designed for efficiency and ease of use."
+description = "A collection of Python scripts to simplify various file-related tasks."
 authors = [{ name = "Shane Bonkowski", email = "3ravens3@gmail.com" }]
 dependencies = [
     "pillow>=11.0.0",
