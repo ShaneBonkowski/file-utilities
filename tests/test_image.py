@@ -24,7 +24,8 @@ class TestImageFile:
     def setup_and_teardown(self):
         """Setup and teardown for each test"""
 
-        # Setup: Create test source and expected data
+        # Setup: Create/re-create test source and expected data.
+        # This is necc. because some of the tests modify the image file in place.
         source_img = PILImage.new("RGB", (100, 100), color="red")
         source_img.save(self.source_img_path, "PNG")
 
@@ -37,9 +38,9 @@ class TestImageFile:
         yield
 
         # Teardown: Remove output files generated during tests
-        for file_path in Path(IMG_TEST_OUTPUT_DATA_DIR).iterdir():
-            if file_path.is_file():
-                file_path.unlink()
+        for filepath in Path(IMG_TEST_OUTPUT_DATA_DIR).iterdir():
+            if filepath.is_file():
+                filepath.unlink()
 
     def test_resize(self, compare_file_bytes):
         """Test resizing functionality."""
@@ -47,9 +48,13 @@ class TestImageFile:
         image.resize(
             50,
             50,
-            save_path=IMG_TEST_OUTPUT_DATA_DIR / "resized_test.png",
+            output_path=IMG_TEST_OUTPUT_DATA_DIR / "resized_test.png",
         )
 
+        # Expected path should be the original path, we do not update the
+        # path to this file if another output_path is provided, since this is
+        # a sort of save-as operation to a separate output file.
+        assert image.path == self.source_img_path
         assert compare_file_bytes(
             IMG_TEST_OUTPUT_DATA_DIR / "resized_test.png",
             self.expected_resized_img_path,
@@ -59,26 +64,32 @@ class TestImageFile:
         """Test converting image format (e.g., PNG to WEBP)."""
         image = ImageFile(self.source_img_path)
         image.convert_format(
-            "webp", save_path=IMG_TEST_OUTPUT_DATA_DIR / "converted_test.webp"
+            "webp", output_path=IMG_TEST_OUTPUT_DATA_DIR / "converted_test.webp"
         )
 
+        # Expected path should be the original path, we do not update the
+        # path to this file if another output_path is provided, since this is
+        # a sort of save-as operation to a separate output file.
+        assert image.path == self.source_img_path
         assert compare_file_bytes(
             IMG_TEST_OUTPUT_DATA_DIR / "converted_test.webp",
             self.expected_converted_img_path,
         )
 
-    def test_resize_no_save_path(self, compare_file_bytes):
-        """Test resizing w/o a save path (should overwrite the original)."""
+    def test_resize_no_output_path(self, compare_file_bytes):
+        """Test resizing w/o an output path (should overwrite the original)."""
         image = ImageFile(self.source_img_path)
         image.resize(50, 50)
 
+        assert image.path == self.source_img_path
         assert compare_file_bytes(self.source_img_path, self.expected_resized_img_path)
 
-    def test_convert_format_no_save_path(self, compare_file_bytes):
-        """Test format conversion w/o a save path (should overwrite the original)."""
+    def test_convert_format_no_output_path(self, compare_file_bytes):
+        """Test format conversion w/o an output path (should be in same dir as the original)."""
         image = ImageFile(self.source_img_path)
         image.convert_format("webp")
 
+        assert image.path == self.source_img_path.with_suffix(".webp")
         assert compare_file_bytes(
             self.source_img_path.with_suffix(".webp"), self.expected_converted_img_path
         )

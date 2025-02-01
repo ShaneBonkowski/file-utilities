@@ -22,33 +22,35 @@ class File:
         if not self.path.exists():
             raise FileNotFoundError(f"File not found: {self.path}")
 
-        self._update_metadata()
-
-    @staticmethod
-    def update_metadata(method: CallableNoReturn) -> CallableNoReturn:
-        """Decorator to update file metadata after certain operations."""
-
-        @functools.wraps(method)
-        def wrapper(self, *args, **kwargs):
-            result = method(self, *args, **kwargs)
-            self._update_metadata()
-            return result
-
-        return wrapper
-
-    def _update_metadata(self):
-        """Updates file metadata."""
+    @property
+    def size(self) -> Optional[int]:
+        """Returns the size of the File."""
         if self.path.exists():
-            self.size = self.path.stat().st_size
-            self.modified_at = self.path.stat().st_mtime
-            self.created_at = getattr(self.path.stat(), "st_birthtime", None)
+            return self.path.stat().st_size
+        else:
+            return 0
+
+    @property
+    def modified_at(self) -> Optional[float]:
+        """Returns the modified_at time of the File."""
+        if self.path.exists():
+            return self.path.stat().st_mtime
+        else:
+            return None
+
+    @property
+    def created_at(self) -> Optional[float]:
+        """Returns the created_at time of the File."""
+        if self.path.exists():
+            return getattr(self.path.stat(), "st_birthtime", None)
+        else:
+            return None
 
     def read(self) -> bytes:
         """Reads the file and returns its contents as bytes."""
         with self.path.open("rb") as f:
             return f.read()
 
-    @update_metadata
     def write(
         self,
         data: Optional[bytes] = None,
@@ -69,7 +71,6 @@ class File:
         """Copies the file to the given destination."""
         shutil.copy(self.path, Path(destination_path).resolve())
 
-    @update_metadata
     def rename(self, new_name: str):
         """Renames the file without changing its directory."""
 
@@ -79,13 +80,11 @@ class File:
         new_path = self.path.parent / new_name
         self.move(new_path)
 
-    @update_metadata
     def move(self, destination_path: Union[str, Path]):
         """Moves the file to the given destination."""
         shutil.move(self.path, Path(destination_path).resolve())
         self.path = Path(destination_path).resolve()
 
-    @update_metadata
     def delete(self) -> None:
         """Deletes the file."""
         Path(self.path).unlink()

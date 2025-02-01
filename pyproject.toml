@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "file_utilities"
-version = "0.3.0"
+version = "1.0.0"
 description = "A collection of Python utilities for file handling, including reading, writing, organizing, and converting various file types. Designed for efficiency and ease of use."
 authors = [{ name = "Shane Bonkowski", email = "3ravens3@gmail.com" }]
 dependencies = [
@@ -15,6 +15,9 @@ requires-python = ">=3.7"
 license = { text = "MIT" }  
 classifiers = ["License :: OSI Approved :: MIT License"]
 
+[project.scripts]
+image_convert = "file_utilities.image.image_convert:main"
+image_resize = "file_utilities.image.image_resize:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -5,7 +5,7 @@ from file_utilities.image.image import ImageFile, SUPPORTED_IMAGE_EXTENSIONS
 
 
 def convert_images(
-    image_dir_or_file_path: Union[str, Path],
+    image_dir_or_filepath: Union[str, Path],
     target_format: str,
     lossless: bool = False,
     force: bool = False,
@@ -17,7 +17,7 @@ def convert_images(
 
     Parameters
     ----------
-    image_dir_or_file_path:
+    image_dir_or_filepath:
         String representation of either the path to the directory containing the
         image files to be converted OR the path to just a single image file.
     target_format:
@@ -32,28 +32,28 @@ def convert_images(
     """
 
     target_format = target_format.replace(".", "").lower()
-    image_dir_or_file_path = Path(image_dir_or_file_path).resolve()
+    image_dir_or_filepath = Path(image_dir_or_filepath).resolve()
 
-    if not image_dir_or_file_path.exists():
+    if not image_dir_or_filepath.exists():
         raise FileNotFoundError(
-            f"The provided path '{image_dir_or_file_path}' is not a valid "
+            f"The provided path '{image_dir_or_filepath}' is not a valid "
             "directory or file."
         )
 
     if output_dir is not None:
         output_dir = Path(output_dir).resolve()
     else:
-        output_dir = image_dir_or_file_path.parent / "converted_images"
+        output_dir = image_dir_or_filepath.parent / "converted_images"
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Convert!
-    if image_dir_or_file_path.is_dir():
-        for file_path in Path(image_dir_or_file_path).iterdir():
-            convert_single_image(file_path, target_format, output_dir, lossless, force)
-    elif image_dir_or_file_path.is_file():
+    if image_dir_or_filepath.is_dir():
+        for filepath in Path(image_dir_or_filepath).iterdir():
+            convert_single_image(filepath, target_format, output_dir, lossless, force)
+    elif image_dir_or_filepath.is_file():
         convert_single_image(
-            image_dir_or_file_path, target_format, output_dir, lossless, force
+            image_dir_or_filepath, target_format, output_dir, lossless, force
         )
 
 
@@ -106,9 +106,8 @@ def main():
         description="Convert image file(s) to a specified format."
     )
     parser.add_argument(
-        "image_dir_or_file_path",
+        "image_dir_or_filepath",
         type=str,
-        required=True,
         help=(
             "Path to a directory containing image files or the path to a single "
             "image file."
@@ -117,7 +116,6 @@ def main():
     parser.add_argument(
         "target_format",
         type=str,
-        required=True,
         help=(
             "The target image format to convert to. Supported formats: "
             f"{SUPPORTED_IMAGE_EXTENSIONS}."
@@ -134,6 +132,7 @@ def main():
         help="If provided, force overwrite existing files.",
     )
     parser.add_argument(
+        "-o",
         "--output_dir",
         type=str,
         default=None,
@@ -146,7 +145,7 @@ def main():
     args = parser.parse_args()
 
     convert_images(
-        args.image_dir_or_file_path,
+        args.image_dir_or_filepath,
         args.target_format,
         args.lossless,
         args.force,

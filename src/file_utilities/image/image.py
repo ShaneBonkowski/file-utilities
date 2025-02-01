@@ -26,14 +26,13 @@ class ImageFile(File):
         self._load_image()
 
     @staticmethod
-    def update_metadata(method: CallableNoReturn) -> CallableNoReturn:
-        """Override update_metadata to include image-specific metadata."""
+    def update_image(method: CallableNoReturn) -> CallableNoReturn:
+        """Decorator to update the Image after a method is called."""
 
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
             result = method(self, *args, **kwargs)
             self._load_image()
-            self._update_metadata()
             return result
 
         return wrapper
@@ -44,7 +43,7 @@ class ImageFile(File):
         return self.image.size
 
     def _load_image(self):
-        """Loads (or reloads) the image into memory."""
+        """Loads (or reloads) the image, updating the image attr."""
         self.is_supported_extension(self.path.suffix.lower())
         self.image = PILImage.open(self.path)
 
@@ -64,7 +63,7 @@ class ImageFile(File):
         self,
         width: int,
         height: int,
-        save_path: Optional[Union[str, Path]] = None,
+        output_path: Optional[Union[str, Path]] = None,
         keep_aspect: bool = True,
     ):
         """
@@ -76,7 +75,7 @@ class ImageFile(File):
             The target width in px.
         height:
             The target height in px.
-        save_path:
+        output_path:
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
         keep_aspect:
@@ -88,12 +87,12 @@ class ImageFile(File):
         else:
             self.image = self.image.resize((width, height))
 
-        self.save(save_path)
+        self.save(output_path)
 
     def convert_format(
         self,
         new_format: str,
-        save_path: Optional[Union[str, Path]] = None,
+        output_path: Optional[Union[str, Path]] = None,
         lossless: Optional[bool] = None,
     ):
         """
@@ -103,7 +102,7 @@ class ImageFile(File):
         ----------
         new_format:
             The new format (e.g., 'png', 'jpeg', 'webp').
-        save_path:
+        output_path:
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
         lossless:
@@ -115,32 +114,34 @@ class ImageFile(File):
 
         # Convert and save the image in the new format
         if lossless is not None:
-            self.save(save_path, format=new_format.upper(), lossless=lossless)
+            self.save(output_path, format=new_format.upper(), lossless=lossless)
         else:
-            self.save(save_path, format=new_format.upper())
+            self.save(output_path, format=new_format.upper())
 
-    @update_metadata
-    def save(self, save_path: Optional[Union[str, Path]] = None, *args, **kwargs):
+    @update_image
+    def save(self, output_path: Optional[Union[str, Path]] = None, *args, **kwargs):
         """
         Saves the image to the file, ensuring it handles the format correctly.
 
         Parameters
         ----------
-        save_path:
+        output_path:
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
         """
 
-        # Overwrite existing path if new format is provided, and no save_path
+        # Overwrite existing path if new format is provided, and no output_path
         # is provided, meaning the file will be overwritten with a new name.
+        # Do not update the path to this file if another output_path is provided,
+        # since this is a sort of save-as operation to a separate output file.
         new_format = kwargs.get("format")
-        if save_path is None and new_format is not None:
+        if output_path is None and new_format is not None:
             self.path = self.path.with_suffix(f".{new_format}")
 
-        save_path = Path(save_path) if save_path is not None else self.path
-        self.is_supported_extension(save_path.suffix.lower())
+        output_path = Path(output_path) if output_path is not None else self.path
+        self.is_supported_extension(output_path.suffix.lower())
 
-        self.image.save(save_path, *args, **kwargs)
+        self.image.save(output_path, *args, **kwargs)
 
     def show(self):
         """Opens the image using the default image viewer."""

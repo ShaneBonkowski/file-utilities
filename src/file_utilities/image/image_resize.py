@@ -9,7 +9,7 @@ def resize_image(
     image_filepath: Union[str, Path],
     width: int,
     height: int,
-    save_path: Optional[Union[str, Path]] = None,
+    output_path: Optional[Union[str, Path]] = None,
 ):
     """
     Resizes the provided image to the desired width and height using the ImageFile class.
@@ -22,7 +22,7 @@ def resize_image(
         The width to resize the image to in px.
     height:
         The height to resize the image to in px.
-    save_path:
+    output_path:
         Optional path to save the resized image. If None, the image will overwrite the original.
     """
 
@@ -35,7 +35,7 @@ def resize_image(
         )
 
     image = ImageFile(image_filepath)
-    image.resize(width, height, save_path=save_path)
+    image.resize(width, height, output_path=output_path)
     print(f"Resized {image_filepath} to {width}x{height}.")
 
 
@@ -46,23 +46,21 @@ def main():
     parser.add_argument(
         "image_filepath",
         type=str,
-        required=True,
         help="Path to the image file to be resized.",
     )
     parser.add_argument(
-        "--width",
+        "width",
         type=int,
-        required=True,
         help="Width to resize the image to in px.",
     )
     parser.add_argument(
-        "--height",
+        "height",
         type=int,
-        required=True,
         help="Height to resize the image to in px.",
     )
     parser.add_argument(
-        "--save_path",
+        "-o",
+        "--output_path",
         type=str,
         default=None,
         help=(
@@ -72,7 +70,9 @@ def main():
     )
 
     args = parser.parse_args()
-    resize_image(args.image_filepath, args.width, args.height, save_path=args.save_path)
+    resize_image(
+        args.image_filepath, args.width, args.height, output_path=args.output_path
+    )
 
 
 if __name__ == "__main__":
