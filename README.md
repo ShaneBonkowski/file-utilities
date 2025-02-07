@@ -162,3 +162,32 @@ Use the Command Line Interface (CLI) to convert image size.
 ```bash
 image_resize tests/test_data/image_test_data/test_image.png 10 10 --o ./test_image_resized.png
 ```
+
+## Style Guide
+
+### Formatting
+All code follows the [PEP-8](https://peps.python.org/pep-0008/) standard. To make this easier, the `black` formatter is used to automatically format to this standard. 
+
+### Documentation
+The [Numpy](https://numpydoc.readthedocs.io/en/latest/format.html) format is used for documentation. In addition, type hints from the `typing` library are used. It looks as follows:
+```python
+def add(number1: int, number2: int) -> int:
+    """
+    This function adds two numbers together.
+
+    Parameters
+    ----------
+    number1 : type
+        Description of number1.
+    number2 : type
+        Description of number2.
+
+    Returns
+    -------
+    int
+        The sum of number1 and number2.
+    """
+    
+    return number1 + number2
+
+```
