@@ -99,7 +99,7 @@ git push origin v<new_version>
 
 Follow the above `Release` steps before deploying!
 
-#### 1. Ensure you have build installed:
+#### 1. (Optional) Ensure you have build installed:
 
 ```bash
 pip install build
@@ -125,7 +125,7 @@ This generates a `dist/` directory containing `.tar.gz` and `.whl` files.
 pip install twine
 ```
 
-#### 5. Upload the package to PyPI:
+#### 5. (Optional) Upload the package to PyPI:
 
 ```bash
 twine upload dist/*
