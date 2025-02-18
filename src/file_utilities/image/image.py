@@ -5,7 +5,16 @@ from typing import Union, Tuple, Optional
 
 from file_utilities.file.file import File, CallableNoReturn
 
-SUPPORTED_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"]
+SUPPORTED_IMAGE_EXTENSIONS = [
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".tiff",
+    ".webp",
+    ".ico",
+]
 
 
 class ImageFile(File):
@@ -101,7 +110,7 @@ class ImageFile(File):
         Parameters
         ----------
         new_format:
-            The new format (e.g., 'png', 'jpeg', 'webp').
+            The new format (e.g., 'png', 'jpeg', 'webp', 'ico').
         output_path:
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
@@ -110,13 +119,18 @@ class ImageFile(File):
             if applicable.
         """
 
-        new_format = new_format.lower()
+        new_format = new_format.upper()
 
         # Convert and save the image in the new format
+        save_kwargs = {"format": new_format}
+        if new_format == "ICO":
+            # Default to 32x32 to ico
+            save_kwargs["sizes"] = [(32, 32)]
+
         if lossless is not None:
-            self.save(output_path, format=new_format.upper(), lossless=lossless)
-        else:
-            self.save(output_path, format=new_format.upper())
+            save_kwargs["lossless"] = lossless
+
+        self.save(output_path, **save_kwargs)
 
     @update_image
     def save(self, output_path: Optional[Union[str, Path]] = None, *args, **kwargs):

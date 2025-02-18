@@ -1,6 +1,6 @@
 # file-utilities
 
-**File Utilities** is a collection of Python tools I built to simplify various file-related tasks. I often found myself searching for things like "PNG to WebP converter," only to end up on slow, ad-ridden web pages. So, I decided to create my own tools (with a lot of help from existing libraries). The following README is written with the intention of allowing anyone with minimal coding experience to get set up and use the tools for themselves. 
+**File Utilities** is a collection of Python tools I built to simplify various file-related tasks. I often found myself searching for things like "PNG to WebP converter," only to end up on slow, ad-ridden web pages. So, I decided to create my own tools (with a lot of help from existing libraries). The following README is written with the intention of allowing anyone with minimal coding experience to get set up and use the tools for themselves.
 
 ## Initial Setup (one-time steps)
 
