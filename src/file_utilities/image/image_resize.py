@@ -23,16 +23,33 @@ def resize_image(
     height:
         The height to resize the image to in px.
     output_path:
-        Optional path to save the resized image. If None, the image will overwrite the original.
+        Optional path to save the resized image. Must include the new name
+        of the file with the correct extension! If None, the resized image will
+        overwrite the original.
     """
 
     image_filepath = Path(image_filepath)
 
     if not image_filepath.is_file():
         raise FileNotFoundError(
-            f"The provided file '{image_filepath}' is not a valid file "
-            "(likely wrong filepath)."
+            f"The provided file '{image_filepath}' is does not exist"
         )
+
+    # If output_path is provided, ensure it's a valid file with the correct extension
+    provided_img_extension = image_filepath.suffix.lower()
+    if output_path is not None:
+        output_path = Path(output_path)
+        if not output_path.is_file() and not output_path.suffix:
+            raise ValueError(
+                f"The provided output path '{output_path}' is not a valid file path. "
+                "It must include the new name of the file with the correct extension."
+            )
+
+        if output_path.suffix.lower() != provided_img_extension:
+            raise ValueError(
+                f"The provided output path '{output_path}' does not have the same "
+                f"extension as the input image file '{image_filepath}'."
+            )
 
     image = ImageFile(image_filepath)
     image.resize(width, height, output_path=output_path)
@@ -64,8 +81,9 @@ def main():
         type=str,
         default=None,
         help=(
-            "Optional path to save the resized image. Defaults to None, "
-            "overwriting the original."
+            "Optional path to save the resized image. Must include the new name "
+            "of the file with the correct extension! e.g. `/path/to/img.png`. "
+            "Defaults to None, overwriting the original."
         ),
     )
 
