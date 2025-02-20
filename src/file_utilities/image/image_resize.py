@@ -9,6 +9,7 @@ def resize_image(
     image_filepath: Union[str, Path],
     width: int,
     height: int,
+    keep_aspect: bool = False,
     output_path: Optional[Union[str, Path]] = None,
 ):
     """
@@ -22,6 +23,8 @@ def resize_image(
         The width to resize the image to in px.
     height:
         The height to resize the image to in px.
+    keep_aspect:
+        Whether or not to preserve the aspect ratio on resize. Defaults to False.
     output_path:
         Optional path to save the resized image. Must include the new name
         of the file with the correct extension! If None, the resized image will
@@ -52,7 +55,7 @@ def resize_image(
             )
 
     image = ImageFile(image_filepath)
-    image.resize(width, height, output_path=output_path)
+    image.resize(width, height, output_path=output_path, keep_aspect=keep_aspect)
     print(f"Resized {image_filepath} to {width}x{height}.")
 
 
@@ -76,6 +79,13 @@ def main():
         help="Height to resize the image to in px.",
     )
     parser.add_argument(
+        "-k",
+        "--keep_aspect",
+        type=bool,
+        default=False,
+        help="Whether or not to preserve the aspect ratio on resize. Defaults to False.",
+    )
+    parser.add_argument(
         "-o",
         "--output_path",
         type=str,
@@ -89,7 +99,11 @@ def main():
 
     args = parser.parse_args()
     resize_image(
-        args.image_filepath, args.width, args.height, output_path=args.output_path
+        args.image_filepath,
+        args.width,
+        args.height,
+        keep_aspect=args.keep_aspect,
+        output_path=args.output_path,
     )
 
 
