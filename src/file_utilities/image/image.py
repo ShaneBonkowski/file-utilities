@@ -73,7 +73,7 @@ class ImageFile(File):
         width: int,
         height: int,
         output_path: Optional[Union[str, Path]] = None,
-        keep_aspect: bool = True,
+        keep_aspect: bool = False,
     ):
         """
         Resizes the image to the given width and height.
@@ -88,7 +88,7 @@ class ImageFile(File):
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
         keep_aspect:
-            Whether to preserve the aspect ratio (default: True).
+            Whether to preserve the aspect ratio (default: False).
 
         """
         if keep_aspect:
