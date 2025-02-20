@@ -27,8 +27,9 @@ def convert_images(
     force:
         Whether to force overwrite an existing file if it exists, False by default.
     output_dir:
-        Output directory to write the converted files to. If not provided, infer the
-        location to write the files based on the location of the input file(s).
+        Output directory to write the converted files to. Must be a directory,
+        not a file! If not provided, infer the location to write the files based
+        on the location of the input file(s).
     """
 
     target_format = target_format.replace(".", "").lower()
@@ -36,14 +37,18 @@ def convert_images(
 
     if not image_dir_or_filepath.exists():
         raise FileNotFoundError(
-            f"The provided path '{image_dir_or_filepath}' is not a valid "
-            "directory or file."
+            f"The provided path '{image_dir_or_filepath}' does not exist."
         )
 
     if output_dir is not None:
         output_dir = Path(output_dir).resolve()
     else:
         output_dir = image_dir_or_filepath.parent / "converted_images"
+
+    if output_dir.is_file() or output_dir.suffix:
+        raise ValueError(
+            f"The provided output directory '{output_dir}' is not a valid directory."
+        )
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -79,10 +84,6 @@ def convert_single_image(
         Whether to force overwrite an existing image if it exists.
     """
 
-    if image_path.suffix.lower() not in SUPPORTED_IMAGE_EXTENSIONS:
-        print(f"Unsupported file type: {image_path.name}. Skipping conversion.")
-        return
-
     filename = image_path.name
     filename_no_extension = image_path.stem
     target_filename = f"{filename_no_extension}.{target_format}"
@@ -90,15 +91,11 @@ def convert_single_image(
 
     # Skip if the target file exists and force is not enabled
     if target_path.exists() and not force:
-        print(f"{target_filename} already exists. Skipping conversion.")
-        return
+        raise FileExistsError(f"{target_filename} already exists and force is False.")
 
-    try:
-        img = ImageFile(image_path)
-        img.convert_format(target_format, target_path, lossless=lossless)
-        print(f"Converted {filename} to {target_filename}")
-    except Exception as e:
-        print(f"Failed to convert {filename}: {e}")
+    img = ImageFile(image_path)
+    img.convert_format(target_format, target_path, lossless=lossless)
+    print(f"Converted {filename} to {target_filename}")
 
 
 def main():
@@ -137,8 +134,8 @@ def main():
         type=str,
         default=None,
         help=(
-            "Optional. Directory to write the converted files to. If not "
-            "provided, infer location."
+            "Optional. Directory to write the converted files to. Must be a "
+            "directory, not a file! If not provided, infer location."
         ),
     )
 
