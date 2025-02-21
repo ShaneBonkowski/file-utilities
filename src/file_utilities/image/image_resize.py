@@ -35,7 +35,7 @@ def resize_image(
 
     if not image_filepath.is_file():
         raise FileNotFoundError(
-            f"The provided file '{image_filepath}' is does not exist"
+            f"The provided file '{image_filepath}' does not exist"
         )
 
     # If output_path is provided, ensure it's a valid file with the correct extension
