@@ -17,6 +17,26 @@ SUPPORTED_IMAGE_EXTENSIONS = [
 ]
 
 
+class UnsupportedImageExtensionError(Exception):
+    """Exception for when an unsupported image extension is provided."""
+
+    def __init__(self, ext: str):
+        super().__init__(
+            f"{ext} is not a supported extension! Supported extensions are as follows: "
+            f"{SUPPORTED_IMAGE_EXTENSIONS}"
+        )
+
+
+class UnmatchingOutputExtensionError(Exception):
+    """Exception for when output file extension does not match source file."""
+
+    def __init__(self, out_ext: str, source_ext: str):
+        super().__init__(
+            f"Provided output path extension: {out_ext} does not match source "
+            f"image extension: {source_ext} "
+        )
+
+
 class ImageFile(File):
     """
     Image file class.
@@ -63,10 +83,7 @@ class ImageFile(File):
         if it is not supported.
         """
         if ext not in SUPPORTED_IMAGE_EXTENSIONS:
-            raise Exception(
-                f"{ext} is not a supported extension! Supported extensions "
-                f"are as follows: {SUPPORTED_IMAGE_EXTENSIONS}"
-            )
+            raise UnsupportedImageExtensionError(ext)
 
     def resize(
         self,
@@ -91,7 +108,21 @@ class ImageFile(File):
             Whether to preserve the aspect ratio (default: False).
 
         """
+
+        output_path = Path(output_path) if output_path is not None else None
+
+        if output_path is not None:
+            if output_path.suffix.lower() != self.path.suffix.lower():
+                raise UnmatchingOutputExtensionError(
+                    output_path.suffix, self.path.suffix
+                )
+
+        # Modifies the image in place and then saves it out to the provided path.
+        # Note that .save() has a decorator that reloads the image after saving,
+        # so that if we did not intend to modify the image in place, self.image
+        # stays accurate.
         if keep_aspect:
+            # thumbnail() modifies the image in place
             self.image.thumbnail((width, height))
         else:
             self.image = self.image.resize((width, height))
@@ -112,18 +143,25 @@ class ImageFile(File):
         new_format:
             The new format (e.g., 'png', 'jpeg', 'webp', 'ico').
         output_path:
-            Optional path to save the image to. If not provided, will overwrite the
-            existing Image file.
+            Optional path to save the image to. If not provided, will save with
+            same name and directory as the existing Image file.
         lossless:
             Whether to use lossless compression (True) or lossy compression (False)
             if applicable.
         """
 
         new_format = new_format.upper()
+        output_path = Path(output_path) if output_path is not None else self.path
+
+        # Ensure outpath extension is the provided format so that PIL knows to convert.
+        if output_path.is_file() or output_path.suffix:
+            output_path = output_path.with_suffix(f".{new_format.lower()}")
+        else:
+            output_path = output_path / f"{self.path.stem}.{new_format.lower()}"
 
         # Convert and save the image in the new format
-        save_kwargs = {"format": new_format}
-        if new_format == "ICO":
+        save_kwargs = {}
+        if new_format.upper() == "ICO":
             # Default to 32x32 to ico
             save_kwargs["sizes"] = [(32, 32)]
 
@@ -133,7 +171,12 @@ class ImageFile(File):
         self.save(output_path, **save_kwargs)
 
     @update_image
-    def save(self, output_path: Optional[Union[str, Path]] = None, *args, **kwargs):
+    def save(
+        self,
+        output_path: Optional[Union[str, Path]] = None,
+        *args,
+        **kwargs,
+    ):
         """
         Saves the image to the file, ensuring it handles the format correctly.
 
@@ -143,14 +186,6 @@ class ImageFile(File):
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
         """
-
-        # Overwrite existing path if new format is provided, and no output_path
-        # is provided, meaning the file will be overwritten with a new name.
-        # Do not update the path to this file if another output_path is provided,
-        # since this is a sort of save-as operation to a separate output file.
-        new_format = kwargs.get("format")
-        if output_path is None and new_format is not None:
-            self.path = self.path.with_suffix(f".{new_format}")
 
         output_path = Path(output_path) if output_path is not None else self.path
         self.is_supported_extension(output_path.suffix.lower())

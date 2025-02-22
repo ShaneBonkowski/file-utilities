@@ -3,7 +3,11 @@ from PIL import Image as PILImage
 from pathlib import Path
 
 from conftest import TEST_DATA_DIR
-from file_utilities.image.image import ImageFile
+from file_utilities.image.image import (
+    ImageFile,
+    UnsupportedImageExtensionError,
+    UnmatchingOutputExtensionError,
+)
 
 
 IMG_TEST_DATA_DIR = TEST_DATA_DIR / "image_test_data"
@@ -42,6 +46,49 @@ class TestImageFile:
             if filepath.is_file():
                 filepath.unlink()
 
+    @pytest.mark.parametrize(
+        "image_path",
+        [
+            ("/non/existent/path/image.png"),
+            ("/another/non/existent/path/image.png"),
+        ],
+    )
+    def test_init_incorrect_image_path(self, image_path):
+        """Test that an incorrect path raises an error when initializing the class."""
+        with pytest.raises(FileNotFoundError):
+            ImageFile(image_path)
+
+    @pytest.mark.parametrize(
+        "image_path",
+        [
+            # File exists, but nto supported extension
+            (IMG_TEST_DATA_DIR / "unsupported_extension.fake"),
+            # Path exists, but its to a directory, not a file.
+            (IMG_TEST_DATA_DIR),
+        ],
+    )
+    def test_load_unsupported_image_extension(self, image_path):
+        """Test that an unsupported image extension raises an error on load()."""
+        with pytest.raises(UnsupportedImageExtensionError):
+            ImageFile(image_path)
+
+    def test_save_unsupported_output_path_extension(self):
+        """
+        Test that an incorrect output path extension raises an error on save()."""
+        image = ImageFile(self.source_img_path)
+
+        with pytest.raises(UnsupportedImageExtensionError):
+            image.save(output_path="path/to/image.wrong_extension")
+
+    def test_resize_non_matching_output_path_extension(self):
+        """
+        Test that an output path extension that does not match the source image
+        raises an error for resize().
+        """
+        image = ImageFile(self.source_img_path)
+        with pytest.raises(UnmatchingOutputExtensionError):
+            image.resize(50, 50, output_path="path/to/image.wrong_extension")
+
     def test_resize(self, compare_file_bytes):
         """Test resizing functionality."""
         image = ImageFile(self.source_img_path)
@@ -51,14 +98,16 @@ class TestImageFile:
             output_path=IMG_TEST_OUTPUT_DATA_DIR / "resized_test.png",
         )
 
-        # Expected path should be the original path, we do not update the
-        # path to this file if another output_path is provided, since this is
-        # a sort of save-as operation to a separate output file.
+        # Expected path should be the original path since we do not update the
+        # original path to the file if another output_path is provided.
         assert image.path == self.source_img_path
         assert compare_file_bytes(
             IMG_TEST_OUTPUT_DATA_DIR / "resized_test.png",
             self.expected_resized_img_path,
         )
+
+        # Original should be unchanged and not resized!
+        assert not compare_file_bytes(image.path, self.expected_resized_img_path)
 
     def test_convert_format(self, compare_file_bytes):
         """Test converting image format (e.g., PNG to WEBP)."""
@@ -67,14 +116,16 @@ class TestImageFile:
             "webp", output_path=IMG_TEST_OUTPUT_DATA_DIR / "converted_test.webp"
         )
 
-        # Expected path should be the original path, we do not update the
-        # path to this file if another output_path is provided, since this is
-        # a sort of save-as operation to a separate output file.
+        # Expected path should be the original path since we do not update the
+        # original path to the file if another output_path is provided.
         assert image.path == self.source_img_path
         assert compare_file_bytes(
             IMG_TEST_OUTPUT_DATA_DIR / "converted_test.webp",
             self.expected_converted_img_path,
         )
+
+        # Original should be unchanged and not new format!
+        assert not compare_file_bytes(image.path, self.expected_resized_img_path)
 
     def test_resize_no_output_path(self, compare_file_bytes):
         """Test resizing w/o an output path (should overwrite the original)."""
@@ -82,14 +133,21 @@ class TestImageFile:
         image.resize(50, 50)
 
         assert image.path == self.source_img_path
-        assert compare_file_bytes(self.source_img_path, self.expected_resized_img_path)
+        assert compare_file_bytes(image.path, self.expected_resized_img_path)
 
     def test_convert_format_no_output_path(self, compare_file_bytes):
         """Test format conversion w/o an output path (should be in same dir as the original)."""
         image = ImageFile(self.source_img_path)
         image.convert_format("webp")
 
-        assert image.path == self.source_img_path.with_suffix(".webp")
+        # Should create a file with the same name as the original, but with the new extension.
+        assert image.path.stem == image.path.with_suffix(".webp").stem
         assert compare_file_bytes(
-            self.source_img_path.with_suffix(".webp"), self.expected_converted_img_path
+            image.path.with_suffix(".webp"), self.expected_converted_img_path
         )
+
+        # Cleanup: Remove the converted file since its in the `image_test_data` folder
+        # and its technically `image_output_data`. This happens because since this writes
+        # if no output dir is provided, it will write "in place" with a new extension.
+        # We don't want to keep this file around.
+        image.path.with_suffix(".webp").unlink()
