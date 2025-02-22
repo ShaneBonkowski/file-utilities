@@ -32,29 +32,25 @@ def convert_images(
         on the location of the input file(s).
     """
 
-    target_format = target_format.replace(".", "").lower()
     image_dir_or_filepath = Path(image_dir_or_filepath).resolve()
 
-    if not image_dir_or_filepath.exists():
-        raise FileNotFoundError(
-            f"The provided path '{image_dir_or_filepath}' does not exist."
-        )
-
+    # If output_dir is not provided, infer the location. Otherwise, use it.
     if output_dir is not None:
         output_dir = Path(output_dir).resolve()
     else:
         output_dir = image_dir_or_filepath.parent / "converted_images"
 
+    # Output directory MUST be a directory, not a file.
     if output_dir.is_file() or output_dir.suffix:
         raise ValueError(
             f"The provided output directory '{output_dir}' is not a valid directory."
         )
-
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Convert!
+    target_format = target_format.replace(".", "").lower()
     if image_dir_or_filepath.is_dir():
-        for filepath in Path(image_dir_or_filepath).iterdir():
+        for filepath in image_dir_or_filepath.iterdir():
             convert_single_image(filepath, target_format, output_dir, lossless, force)
     elif image_dir_or_filepath.is_file():
         convert_single_image(
@@ -84,9 +80,8 @@ def convert_single_image(
         Whether to force overwrite an existing image if it exists.
     """
 
-    filename = image_path.name
-    filename_no_extension = image_path.stem
-    target_filename = f"{filename_no_extension}.{target_format}"
+    # Convert the image to the target format
+    target_filename = f"{image_path.stem}.{target_format}"
     target_path = output_dir / target_filename
 
     # Skip if the target file exists and force is not enabled
@@ -95,7 +90,7 @@ def convert_single_image(
 
     img = ImageFile(image_path)
     img.convert_format(target_format, target_path, lossless=lossless)
-    print(f"Converted {filename} to {target_filename}")
+    print(f"Converted {image_path.name} to {target_filename}")
 
 
 def main():
