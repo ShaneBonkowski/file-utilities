@@ -31,29 +31,6 @@ def resize_image(
         overwrite the original.
     """
 
-    image_filepath = Path(image_filepath)
-
-    if not image_filepath.is_file():
-        raise FileNotFoundError(
-            f"The provided file '{image_filepath}' does not exist"
-        )
-
-    # If output_path is provided, ensure it's a valid file with the correct extension
-    provided_img_extension = image_filepath.suffix.lower()
-    if output_path is not None:
-        output_path = Path(output_path)
-        if not output_path.is_file() and not output_path.suffix:
-            raise ValueError(
-                f"The provided output path '{output_path}' is not a valid file path. "
-                "It must include the new name of the file with the correct extension."
-            )
-
-        if output_path.suffix.lower() != provided_img_extension:
-            raise ValueError(
-                f"The provided output path '{output_path}' does not have the same "
-                f"extension as the input image file '{image_filepath}'."
-            )
-
     image = ImageFile(image_filepath)
     image.resize(width, height, output_path=output_path, keep_aspect=keep_aspect)
     print(f"Resized {image_filepath} to {width}x{height}.")
