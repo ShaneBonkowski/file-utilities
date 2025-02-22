@@ -90,7 +90,6 @@ def convert_single_image(
 
     img = ImageFile(image_path)
     img.convert_format(target_format, target_path, lossless=lossless)
-    print(f"Converted {image_path.name} to {target_filename}")
 
 
 def main():

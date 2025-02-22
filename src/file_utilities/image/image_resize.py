@@ -33,7 +33,6 @@ def resize_image(
 
     image = ImageFile(image_filepath)
     image.resize(width, height, output_path=output_path, keep_aspect=keep_aspect)
-    print(f"Resized {image_filepath} to {width}x{height}.")
 
 
 def main():

@@ -127,7 +127,8 @@ class ImageFile(File):
         else:
             self.image = self.image.resize((width, height))
 
-        self.save(output_path)
+        output_path = self.save(output_path)
+        print(f"Resized {self.path} to {width}x{height} at path {output_path}.")
 
     def convert_format(
         self,
@@ -168,7 +169,8 @@ class ImageFile(File):
         if lossless is not None:
             save_kwargs["lossless"] = lossless
 
-        self.save(output_path, **save_kwargs)
+        output_path = self.save(output_path, **save_kwargs)
+        print(f"Converted {self.path} to {new_format} at path {output_path}.")
 
     @update_image
     def save(
@@ -176,7 +178,7 @@ class ImageFile(File):
         output_path: Optional[Union[str, Path]] = None,
         *args,
         **kwargs,
-    ):
+    ) -> Path:
         """
         Saves the image to the file, ensuring it handles the format correctly.
 
@@ -185,12 +187,17 @@ class ImageFile(File):
         output_path:
             Optional path to save the image to. If not provided, will overwrite the
             existing Image file.
+
+        Returns:
+        --------
+        Outputh path where the image was saved.
         """
 
         output_path = Path(output_path) if output_path is not None else self.path
         self.is_supported_extension(output_path.suffix.lower())
 
         self.image.save(output_path, *args, **kwargs)
+        return output_path
 
     def show(self):
         """Opens the image using the default image viewer."""
