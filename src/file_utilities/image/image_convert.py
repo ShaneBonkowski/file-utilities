@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from typing import Optional, Union
+
 from file_utilities.image.image import ImageFile, SUPPORTED_IMAGE_EXTENSIONS
 
 

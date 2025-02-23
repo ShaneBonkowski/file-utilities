@@ -22,8 +22,8 @@ class UnsupportedImageExtensionError(Exception):
 
     def __init__(self, ext: str):
         super().__init__(
-            f"{ext} is not a supported extension! Supported extensions are as follows: "
-            f"{SUPPORTED_IMAGE_EXTENSIONS}"
+            f"{ext} is not a supported extension! Supported extensions are as "
+            f"follows: {SUPPORTED_IMAGE_EXTENSIONS}"
         )
 
 
@@ -118,9 +118,9 @@ class ImageFile(File):
                 )
 
         # Modifies the image in place and then saves it out to the provided path.
-        # Note that .save() has a decorator that reloads the image after saving,
-        # so that if we did not intend to modify the image in place, self.image
-        # stays accurate.
+        # Note that .save() has a decorator that reloads the image at self.path
+        # after saving. That way, if we did not intend to overwrite the current
+        # image, self.image will reload to its prior state and stay accurate.
         if keep_aspect:
             # thumbnail() modifies the image in place
             self.image.thumbnail((width, height))
@@ -151,10 +151,9 @@ class ImageFile(File):
             if applicable.
         """
 
-        new_format = new_format.upper()
         output_path = Path(output_path) if output_path is not None else self.path
 
-        # Ensure outpath extension is the provided format so that PIL knows to convert.
+        # Ensure outpath ext is the provided format so that PIL knows to convert.
         if output_path.is_file() or output_path.suffix:
             output_path = output_path.with_suffix(f".{new_format.lower()}")
         else:
