@@ -84,26 +84,21 @@ multiple times while rapidly prototyping.
 
 ### Release
 
-#### 1. Commit Changes:
-
-Ensure all changes are committed to the `main` branch.
-
-#### 2. Update Version:
+#### 1. Update Version:
 
 - Open the pyproject.toml file and increment the version number under [project].
 - Use semantic versioning (e.g., 0.1.1 → 0.2.0).
 
-#### 3. Tag the Release off of the `main` branch:
+#### 2. Commit Changes:
 
-```bash
-git tag -a v<new_version> -m "Release <new_version>"
-git push origin v<new_version>
-```
+Ensure all changes are committed to the `main` branch.
 
-#### 4. Create a Release Page on GitHub:
+#### 3. Create a Release Page on GitHub:
 
 - Go to the `Releases` tab of the GitHub repository.
-- Click `Draft a new release`, select the tag that was just pushed, and provide a release title and description.
+- Click on `Draft a new release`.
+- Create a tag for `v<new_version>` off of the `main` branch that was just pushed.
+- Provide a release title and description.
 - Publish the release.
 
 ### Deploying Using pyproject.toml
