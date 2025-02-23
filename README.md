@@ -71,6 +71,17 @@ macOS/Linux
 source venv/bin/activate
 ```
 
+### Pip installing in editable mode
+
+```bash
+pip install -e /path/to/file-utilities
+```
+
+This allows for any changes made to the code to instantly take effect without
+needing to re-install. This is especially useful when working on new tests or
+command line functionality, since it eliminates the need for pip installing
+multiple times while rapidly prototyping.
+
 ### Release
 
 #### 1. Commit Changes:
