@@ -160,13 +160,13 @@ image.convert_format("webp")
 Use the Command Line Interface (CLI) to convert an image type.
 
 ```bash
-image_convert tests/test_data/image_test_data/test_image.png .webp --o .
+image_convert tests/test_data/image_test_data/test_image.png .webp -o .
 ```
 
 Use the Command Line Interface (CLI) to convert image size.
 
 ```bash
-image_resize tests/test_data/image_test_data/test_image.png 10 10 --o ./test_image_resized.png
+image_resize tests/test_data/image_test_data/test_image.png 10 10 -o ./test_image_resized.png
 ```
 
 ## Style Guide
