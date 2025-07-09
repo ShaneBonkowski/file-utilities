@@ -1,7 +1,7 @@
 import argparse
 import re
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, List, Dict, Any
 
 from file_utilities.file.docx import SimpleDocx
 
@@ -31,16 +31,19 @@ def convert_docx_to_written_content(
 
     for paragraph_data in content:
         if paragraph_data["is_empty"]:
-            continue  # Skip empty paragraphs
+            continue
 
-        # Determine if entire paragraph is italic
-        all_italic = all(
-            run["italic"] for run in paragraph_data["runs"] if run["text"].strip()
-        )
-        font_style = "italic" if all_italic else "normal"
+        # Font style for the entire paragraph
+        font_style = _get_paragraph_font_style(paragraph_data["runs"])
 
-        # Convert alignment
+        # Text alignment for the paragraph
         text_align = paragraph_data["alignment"]
+        if text_align == "justified":
+            text_align = "justify"
+
+        if text_align not in ["left", "center", "right", "justify"]:
+            print(f"Unknown alignment '{text_align}', defaulting to 'left'.")
+            text_align = "left"
 
         # Process text with formatting
         processed_text = _process_paragraph_text(paragraph_data["runs"])
@@ -58,13 +61,13 @@ def convert_docx_to_written_content(
     # Create the full JSX template
     jsx_output = f"""<WrittenContentLoader {{...storyData}}>
         <WrittenContentParagraphGroup>
-{chr(10).join(jsx_paragraphs)}
+{'\n'.join(jsx_paragraphs)}
         </WrittenContentParagraphGroup>
       </WrittenContentLoader>"""
 
     # Determine output path
     if output_path is None:
-        input_path = Path(docx_filepath)
+        input_path = docx.file.path
         output_path = input_path.parent / f"{input_path.stem}_written_content.txt"
 
     # Write to file
@@ -74,43 +77,106 @@ def convert_docx_to_written_content(
     print(f"Converted DOCX to WrittenContent JSX: {output_path}")
 
 
-def _process_paragraph_text(runs) -> str:
-    """Process text runs and apply formatting while normalizing quotes."""
-    processed_parts = []
-
-    for run in runs:
-        text = run["text"]
-
-        # Normalize quotes and apostrophes
-        text = _normalize_quotes(text)
-
-        # Apply formatting for individual words/phrases (not whole paragraph)
-        if run["italic"] and not _is_whole_paragraph_italic(runs):
-            text = f"<em>{text}</em>"
-        if run["bold"]:
-            text = f"<strong>{text}</strong>"
-
-        processed_parts.append(text)
-
-    return "".join(processed_parts)
-
-
-def _is_whole_paragraph_italic(runs) -> bool:
+def _get_paragraph_font_style(runs: List[Dict[str, Any]]) -> str:
     """
-    Check if the entire paragraph should be considered italic.
+    Determine the font style for the entire paragraph.
 
     Parameters
     ----------
     runs:
         List of text runs in the paragraph.
+
+    Returns
+    -------
+    str:
+        "bold", "italic", or "normal" based on whether the entire paragraph has
+        consistent formatting.
     """
     non_empty_runs = [run for run in runs if run["text"].strip()]
-    return all(run["italic"] for run in non_empty_runs) if non_empty_runs else False
+
+    if not non_empty_runs:
+        return "normal"
+
+    all_bold = all(run["bold"] for run in non_empty_runs)
+    all_italic = all(run["italic"] for run in non_empty_runs)
+
+    if all_bold:
+        return "bold"
+    elif all_italic:
+        return "italic"
+    else:
+        return "normal"
 
 
-def _normalize_quotes(text: str) -> str:
+def _process_paragraph_text(runs: List[Dict[str, Any]]) -> str:
     """
-    Normalize various quote and apostrophe characters.
+    Process text runs and apply formatting while normalizing quotes.
+    Merges consecutive runs with same formatting to avoid fragmented tags.
+
+    Parameters
+    ----------
+    runs:
+        List of text runs in the paragraph.
+
+    Returns
+    -------
+    text:
+        The processed text with formatting applied.
+    """
+    paragraph_font_style = _get_paragraph_font_style(runs)
+
+    # First, normalize all text and determine which runs need individual
+    # formatting. We first determine which ones need formatting so that we
+    # can merge consecutive runs with the same formatting later. This avoids
+    # a bunch of consecutive <em> or <b> tags for example.
+    processed_runs = []
+    for run in runs:
+        # Normalize quotes, apostrophes, etc. to avoid JSX issues
+        text = _normalize_symbols(run["text"])
+
+        # Apply formatting for individual words/phrases only if not whole paragraph.
+        # This is because `font_style` already applies to the whole paragraph if necc.
+        needs_italic = run["italic"] and paragraph_font_style != "italic"
+        needs_bold = run["bold"] and paragraph_font_style != "bold"
+
+        processed_runs.append(
+            {"text": text, "needs_italic": needs_italic, "needs_bold": needs_bold}
+        )
+
+    # Merge consecutive runs with same formatting
+    merged_parts = []
+    i = 0
+
+    while i < len(processed_runs):
+        current_run = processed_runs[i]
+
+        # Collect consecutive runs with same formatting
+        text_group = current_run["text"]
+        j = i + 1
+
+        while (
+            j < len(processed_runs)
+            and processed_runs[j]["needs_italic"] == current_run["needs_italic"]
+            and processed_runs[j]["needs_bold"] == current_run["needs_bold"]
+        ):
+            text_group += processed_runs[j]["text"]
+            j += 1
+
+        # Apply formatting to the entire group
+        if current_run["needs_italic"]:
+            text_group = f"<em>{text_group}</em>"
+        if current_run["needs_bold"]:
+            text_group = f"<b>{text_group}</b>"
+
+        merged_parts.append(text_group)
+        i = j
+
+    return "".join(merged_parts)
+
+
+def _normalize_symbols(text: str) -> str:
+    """
+    Normalize various quote, apostrophe, etc. characters to avoid JSX issues.
 
     Parameters
     ----------
