@@ -22,11 +22,13 @@ def convert_docx_to_written_content(
         "{filename}_written_content.txt".
     """
 
-    # Load the DOCX file
     docx = SimpleDocx(docx_filepath)
     content = docx.load_content()
 
-    # Process paragraphs
+    if output_path is not None and ".txt" not in Path(output_path).suffix.lower():
+        raise ValueError("Output path must have a .txt extension.")
+
+    # Process each paragraph into desired JSX format
     jsx_paragraphs = []
 
     for paragraph_data in content:
@@ -45,10 +47,10 @@ def convert_docx_to_written_content(
             print(f"Unknown alignment '{text_align}', defaulting to 'left'.")
             text_align = "left"
 
-        # Process text with formatting
+        # Process individual text in each paragraph with formatting
         processed_text = _process_paragraph_text(paragraph_data["runs"])
 
-        # Create JSX element
+        # Create the custom JSX component for each paragraph
         jsx_element = f"""          <WrittenContentParagraphElement
             fontStyle="{font_style}"
             textAlign="{text_align}"
@@ -58,19 +60,18 @@ def convert_docx_to_written_content(
 
         jsx_paragraphs.append(jsx_element)
 
-    # Create the full JSX template
+    # Create the full JSX template for all paragraphs together
     jsx_output = f"""<WrittenContentLoader {{...storyData}}>
         <WrittenContentParagraphGroup>
 {'\n'.join(jsx_paragraphs)}
         </WrittenContentParagraphGroup>
       </WrittenContentLoader>"""
 
-    # Determine output path
+    # Write to file
     if output_path is None:
         input_path = docx.file.path
         output_path = input_path.parent / f"{input_path.stem}_written_content.txt"
 
-    # Write to file
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(jsx_output)
 
@@ -188,16 +189,22 @@ def _normalize_symbols(text: str) -> str:
     text:
         The normalized text.
     """
-    # Smart quotes to regular quotes
-    # TODO: add all the weird ticks to this
-    text = re.sub(r'["""]', "&quot;", text)
-    # text = re.sub(r'[''']', '&apos;', text)
-    text = re.sub(r"`", "&apos;", text)
+    # Handle quotes and apostrophes
+    text = re.sub(r'[“”"]', "&quot;", text)
+    text = re.sub(r"[‘’`']", "&apos;", text)
 
-    # Handle other special characters that might cause JSX issues
+    # Handle other common special characters that might cause JSX issues
     text = text.replace("&", "&amp;")
     text = text.replace("<", "&lt;")
     text = text.replace(">", "&gt;")
+    text = text.replace("\u00a0", "&nbsp;")
+    text = re.sub(r"[—–]", "&mdash;", text)
+
+    # Uncommon symbols
+    text = text.replace("©", "&copy;")
+    text = text.replace("®", "&reg;")
+    text = text.replace("™", "&trade;")
+    text = text.replace("°", "&deg;")
 
     return text
 
@@ -218,7 +225,7 @@ def main():
         "-o",
         "--output",
         type=str,
-        help="Output path for the JSX output (optional)",
+        help="Output path to `.txt` file for the JSX output (optional)",
     )
 
     args = parser.parse_args()

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Dict, Any, Union, Optional
 from docx import Document
-from docx.shared import WD_PARAGRAPH_ALIGNMENT
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.text.paragraph import Paragraph
 
 from file_utilities.file.file import File
