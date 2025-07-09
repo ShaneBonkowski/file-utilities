@@ -137,7 +137,7 @@ pip install twine
 twine upload dist/*
 ```
 
-## Usage
+## Example Usage
 
 Resize an image:
 

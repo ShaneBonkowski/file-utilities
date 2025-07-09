@@ -39,8 +39,9 @@ class TestDocxToWrittenContent:
                 DOCX_TEST_OUTPUT_DATA_DIR / "output_p_no_empty_spaces.txt",
                 DOCX_TEST_DATA_DIR / "expected_output_p_no_empty_spaces.txt",
             ),
-            # Test case with paragraphs separated by empty spaces. Therefore,
-            # has paragraphs that need <br></br> to separate them.
+            # Test case with paragraphs separated by empty spaces (two "enter"s
+            # per paragraph). This also has paragraphs that need <br></br>
+            # to separate them since they are just 1 single enter. This is intentional.
             (
                 DOCX_TEST_DATA_DIR / "input_p_empty_spaces.docx",
                 DOCX_TEST_OUTPUT_DATA_DIR / "output_p_empty_spaces.txt",
