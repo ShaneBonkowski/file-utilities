@@ -9,7 +9,8 @@ description = "A collection of Python scripts to simplify various file-related t
 authors = [{ name = "Shane Bonkowski", email = "3ravens3@gmail.com" }]
 dependencies = [
     "pillow>=11.0.0",
-    "pytest>=8.3.0"
+    "pytest>=8.3.0",
+    "python-docx>=1.1.0",
 ]
 requires-python = ">=3.7"
 license = { text = "MIT" }  
