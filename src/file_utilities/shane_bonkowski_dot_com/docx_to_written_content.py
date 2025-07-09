@@ -24,6 +24,8 @@ def convert_docx_to_written_content(
 
     docx = SimpleDocx(docx_filepath)
     content = docx.load_content()
+    content = _strip_content_before_date(content)  # remove title/author info
+    content = _group_consecutive_paragraphs(content)
 
     if output_path is not None and ".txt" not in Path(output_path).suffix.lower():
         raise ValueError("Output path must have a .txt extension.")
@@ -63,7 +65,7 @@ def convert_docx_to_written_content(
     # Create the full JSX template for all paragraphs together
     jsx_output = f"""<WrittenContentLoader {{...storyData}}>
         <WrittenContentParagraphGroup>
-{'\n'.join(jsx_paragraphs)}
+{'\n\n'.join(jsx_paragraphs)}
         </WrittenContentParagraphGroup>
       </WrittenContentLoader>"""
 
@@ -76,6 +78,109 @@ def convert_docx_to_written_content(
         f.write(jsx_output)
 
     print(f"Converted DOCX to WrittenContent JSX: {output_path}")
+
+
+def _strip_content_before_date(content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove all paragraphs before the first date pattern (e.g., "7-6-24", "MM-DD-YY").
+
+    Parameters
+    ----------
+    content:
+        List of paragraph data from the document.
+
+    Returns
+    -------
+    stripped_content:
+        Content with title/author info removed.
+    """
+    date_pattern = r"\d{1,2}-\d{1,2}-\d{2,4}"
+
+    for i, paragraph in enumerate(content):
+        if not paragraph["is_empty"]:
+            if re.search(date_pattern, paragraph["text"]):
+                return content[i + 1 :]
+
+    # If no date found, return original content
+    return content
+
+
+def _group_consecutive_paragraphs(
+    content: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    If it is detected that the document uses double-enters (i.e., empty paragraphs)
+    to separate sections, this function will group consecutive non-empty paragraphs
+    into single paragraphs with <br /> breaks between them.
+
+    Parameters
+    ----------
+    content:
+        List of paragraph data from the document.
+
+    Returns
+    -------
+    grouped_content:
+        Modified content with consecutive paragraphs grouped.
+    """
+
+    # Only proceed if there are empty paragraphs that are actually separating
+    # content
+    has_separating_empty_paragraphs = False
+    for i in range(1, len(content) - 1):
+        if (
+            content[i]["is_empty"]
+            and not content[i - 1]["is_empty"]
+            and not content[i + 1]["is_empty"]
+        ):
+            has_separating_empty_paragraphs = True
+            break
+
+    if not has_separating_empty_paragraphs:
+        return content  # No grouping needed
+
+    grouped = []
+    i = 0
+
+    while i < len(content):
+        current_para = content[i]
+
+        # Skip empty paragraphs - they act as separators
+        if current_para["is_empty"]:
+            i += 1
+            continue
+
+        # Start a new group with current paragraph
+        combined_runs = list(current_para["runs"])
+        group_alignment = current_para["alignment"]
+
+        # Look for consecutive non-empty paragraphs
+        j = i + 1
+        while j < len(content) and not content[j]["is_empty"]:
+            # Add line break marker
+            combined_runs.append(
+                {"text": "<br></br>\n", "bold": False, "italic": False}
+            )
+            # Add next paragraph's runs (strip whitespace from each run's text)
+            for run in content[j]["runs"]:
+                stripped_run = run.copy()
+                stripped_run["text"] = run["text"].strip()
+                combined_runs.append(stripped_run)
+            j += 1
+
+        # Create grouped paragraph
+        grouped_para = {
+            "type": "paragraph",
+            "alignment": group_alignment,
+            "runs": combined_runs,
+            "text": " ".join([para["text"] for para in content[i:j]]),
+            "is_empty": False,
+        }
+
+        grouped.append(grouped_para)
+        i = j
+
+    return grouped
 
 
 def _get_paragraph_font_style(runs: List[Dict[str, Any]]) -> str:
@@ -151,6 +256,12 @@ def _process_paragraph_text(runs: List[Dict[str, Any]]) -> str:
     while i < len(processed_runs):
         current_run = processed_runs[i]
 
+        # Don't merge line breaks
+        if current_run["text"] == "<br></br>":
+            merged_parts.append(current_run["text"])
+            i += 1
+            continue
+
         # Collect consecutive runs with same formatting
         text_group = current_run["text"]
         j = i + 1
@@ -189,16 +300,17 @@ def _normalize_symbols(text: str) -> str:
     text:
         The normalized text.
     """
+    # Must handle & first since other replacements may introduce new &
+    text = text.replace("&", "&amp;")
+
     # Handle quotes and apostrophes
     text = re.sub(r'[“”"]', "&quot;", text)
     text = re.sub(r"[‘’`']", "&apos;", text)
 
     # Handle other common special characters that might cause JSX issues
-    text = text.replace("&", "&amp;")
-    text = text.replace("<", "&lt;")
-    text = text.replace(">", "&gt;")
     text = text.replace("\u00a0", "&nbsp;")
-    text = re.sub(r"[—–]", "&mdash;", text)
+    text = re.sub(r"[–]", "&ndash;", text)
+    text = re.sub(r"[—]", "&mdash;", text)
 
     # Uncommon symbols
     text = text.replace("©", "&copy;")
