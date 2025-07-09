@@ -126,7 +126,7 @@ class TestImageFile:
 
     def test_resize_no_output_path(self, compare_file_bytes):
         """
-        Test taht resizing w/o an output path works as expected. This should
+        Test that resizing w/o an output path works as expected. This should
         overwrite the original image file.
         """
         image = ImageFile(self.source_img_path)

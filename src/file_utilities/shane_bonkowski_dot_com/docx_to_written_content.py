@@ -9,7 +9,7 @@ from file_utilities.file.docx import SimpleDocx
 def convert_docx_to_written_content(
     docx_filepath: Union[str, Path],
     output_path: Optional[Union[str, Path]] = None,
-):
+) -> str:
     """
     Converts a DOCX file to WrittenContent JSX format for shane-bonkowski-dot-com.
 
@@ -20,6 +20,11 @@ def convert_docx_to_written_content(
     output_path:
         Optional path to save the JSX output. If None, saves as
         "{filename}_written_content.txt".
+
+    Returns
+    -------
+    jsx_output:
+        The generated WrittenContent JSX as a string.
     """
 
     docx = SimpleDocx(docx_filepath)
@@ -78,6 +83,8 @@ def convert_docx_to_written_content(
         f.write(jsx_output)
 
     print(f"Converted DOCX to WrittenContent JSX: {output_path}")
+
+    return jsx_output
 
 
 def _strip_content_before_date(content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
