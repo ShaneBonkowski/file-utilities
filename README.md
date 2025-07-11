@@ -142,7 +142,7 @@ twine upload dist/*
 Resize an image:
 
 ```python
-from file_utilities.image.image import ImageFile
+from file_utilities.core.image import ImageFile
 
 image = ImageFile("/path/to/picture.png")
 image.resize(400, 200)
@@ -151,7 +151,7 @@ image.resize(400, 200)
 Convert to another image type:
 
 ```python
-from file_utilities.image.image import ImageFile
+from file_utilities.core.image import ImageFile
 
 image = ImageFile("/path/to/picture.png")
 image.convert_format("webp")

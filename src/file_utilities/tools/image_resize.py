@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from typing import Optional, Union
 
-from file_utilities.image.image import ImageFile
+from file_utilities.core.image import ImageFile
 
 
 def resize_image(

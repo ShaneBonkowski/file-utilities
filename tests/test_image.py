@@ -3,11 +3,7 @@ from PIL import Image as PILImage
 from pathlib import Path
 
 from conftest import TEST_DATA_DIR
-from file_utilities.image.image import (
-    ImageFile,
-    UnsupportedImageExtensionError,
-    UnmatchingOutputExtensionError,
-)
+from file_utilities.core.image import ImageFile
 
 
 IMG_TEST_DATA_DIR = TEST_DATA_DIR / "image_test_data"
@@ -82,7 +78,7 @@ class TestImageFile:
         Test that an unsupported image extension will raise an expected error
         when initializing the ImageFile class.
         """
-        with pytest.raises(UnsupportedImageExtensionError):
+        with pytest.raises(ValueError):
             ImageFile(image_path)
 
     def test_save_unsupported_output_path_extension(self):
@@ -92,7 +88,7 @@ class TestImageFile:
         """
         image = ImageFile(self.source_img_path)
 
-        with pytest.raises(UnsupportedImageExtensionError):
+        with pytest.raises(ValueError):
             image.save(output_path="path/to/image.wrong_extension")
 
     def test_resize_non_matching_output_path_extension(self):
@@ -101,7 +97,7 @@ class TestImageFile:
         path extension will raise an error for resize().
         """
         image = ImageFile(self.source_img_path)
-        with pytest.raises(UnmatchingOutputExtensionError):
+        with pytest.raises(ValueError):
             image.resize(50, 50, output_path="path/to/image.wrong_extension")
 
     def test_resize(self, compare_file_bytes):

@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Union, Optional, List, Dict, Any
 
-from file_utilities.file.docx import SimpleDocx
+from file_utilities.core.docx import DocxFile
 
 
 def convert_docx_to_written_content(
@@ -27,8 +27,8 @@ def convert_docx_to_written_content(
         The generated WrittenContent JSX as a string.
     """
 
-    docx = SimpleDocx(docx_filepath)
-    content = docx.load_content()
+    docx = DocxFile(docx_filepath)
+    content = docx.load_basic_content()
     content = _strip_content_before_date(content)  # remove title/author info
     content = _group_consecutive_paragraphs(content)
 
@@ -76,7 +76,7 @@ def convert_docx_to_written_content(
 
     # Write to file
     if output_path is None:
-        input_path = docx.file.path
+        input_path = docx.path
         output_path = input_path.parent / f"{input_path.stem}_written_content.txt"
 
     with open(output_path, "w", encoding="utf-8") as f:

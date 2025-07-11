@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image as PILImage
 from typing import Union, Tuple, Optional
 
-from file_utilities.file.file import File, CallableNoReturn
+from file_utilities.core.file import File, CallableNoReturn
 
 SUPPORTED_IMAGE_EXTENSIONS = [
     ".png",
@@ -15,26 +15,6 @@ SUPPORTED_IMAGE_EXTENSIONS = [
     ".webp",
     ".ico",
 ]
-
-
-class UnsupportedImageExtensionError(Exception):
-    """Exception for when an unsupported image extension is provided."""
-
-    def __init__(self, ext: str):
-        super().__init__(
-            f"{ext} is not a supported extension! Supported extensions are as "
-            f"follows: {SUPPORTED_IMAGE_EXTENSIONS}"
-        )
-
-
-class UnmatchingOutputExtensionError(Exception):
-    """Exception for when output file extension does not match source file."""
-
-    def __init__(self, out_ext: str, source_ext: str):
-        super().__init__(
-            f"Provided output path extension: {out_ext} does not match source "
-            f"image extension: {source_ext} "
-        )
 
 
 class ImageFile(File):
@@ -52,38 +32,67 @@ class ImageFile(File):
 
     def __init__(self, path: Union[str, Path]):
         super().__init__(path)
+        self._validate_image_extension(self.path)
         self._load_image()
+
+    @property
+    def dimensions(self) -> Tuple[int, int]:
+        """
+        Image dimensions in pixels.
+
+        Returns
+        -------
+        dimensions:
+            A tuple of (width, height) in px.
+        """
+        return self.image.size
+
+    def _load_image(self):
+        """Loads (or reloads) the image, updating the image attr."""
+        self.image = PILImage.open(self.path)
+
+    @staticmethod
+    def _validate_image_extension(path: Union[str, Path]):
+        """
+        Check if the provided img extension is supported. Raise an exception
+        if it is not supported.
+
+        Parameters
+        ----------
+        path:
+            Path to the image file to validate.
+        """
+        path = Path(path)
+        ext = path.suffix.lower()
+        if ext not in SUPPORTED_IMAGE_EXTENSIONS:
+            raise ValueError(
+                "Provided file must be an image of one of the following types: "
+                f"{SUPPORTED_IMAGE_EXTENSIONS}. Got: {path}"
+            )
 
     @staticmethod
     def update_image(method: CallableNoReturn) -> CallableNoReturn:
-        """Decorator to update the Image after a method is called."""
+        """
+        Decorator to update the Image after a method is called.
+
+        Parameters
+        ----------
+        method:
+            The method to decorate.
+
+        Returns
+        -------
+        wrapper:
+            The decorated method which updates the image after being called.
+        """
 
         @functools.wraps(method)
-        def wrapper(self, *args, **kwargs):
+        def wrapper(self: "ImageFile", *args, **kwargs):
             result = method(self, *args, **kwargs)
             self._load_image()
             return result
 
         return wrapper
-
-    @property
-    def dimensions(self) -> Tuple[int, int]:
-        """Returns the (width, height) of the image in px."""
-        return self.image.size
-
-    def _load_image(self):
-        """Loads (or reloads) the image, updating the image attr."""
-        self.is_supported_extension(self.path.suffix.lower())
-        self.image = PILImage.open(self.path)
-
-    @staticmethod
-    def is_supported_extension(ext: str):
-        """
-        Check if the provided extension is supported. Raise an exception
-        if it is not supported.
-        """
-        if ext not in SUPPORTED_IMAGE_EXTENSIONS:
-            raise UnsupportedImageExtensionError(ext)
 
     def resize(
         self,
@@ -106,15 +115,15 @@ class ImageFile(File):
             existing Image file.
         keep_aspect:
             Whether to preserve the aspect ratio (default: False).
-
         """
 
         output_path = Path(output_path) if output_path is not None else None
 
         if output_path is not None:
             if output_path.suffix.lower() != self.path.suffix.lower():
-                raise UnmatchingOutputExtensionError(
-                    output_path.suffix, self.path.suffix
+                raise ValueError(
+                    f"Provided output path extension '{output_path.suffix}' does not "
+                    f"match source image extension '{self.path.suffix}' "
                 )
 
         # Modifies the image in place and then saves it out to the provided path.
@@ -193,7 +202,7 @@ class ImageFile(File):
         """
 
         output_path = Path(output_path) if output_path is not None else self.path
-        self.is_supported_extension(output_path.suffix.lower())
+        self._validate_image_extension(output_path)
 
         self.image.save(output_path, *args, **kwargs)
         return output_path
@@ -203,7 +212,15 @@ class ImageFile(File):
         self.image.show()
 
     def write(self, data: Optional[bytes] = None):
-        """Override `File` write method for `ImageFile`"""
+        """
+        Writes data to the file.
+
+        Parameters
+        ----------
+        data:
+            The data to write to the file. If None, the current file contents
+            are saved (updating its metadata).
+        """
         raise NotImplementedError(
             "The 'write' method is not supported in the ImageFile class."
         )

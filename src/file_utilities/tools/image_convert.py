@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from typing import Optional, Union
 
-from file_utilities.image.image import ImageFile, SUPPORTED_IMAGE_EXTENSIONS
+from file_utilities.core.image import ImageFile, SUPPORTED_IMAGE_EXTENSIONS
 
 
 def convert_images(
@@ -60,7 +60,11 @@ def convert_images(
 
 
 def convert_single_image(
-    image_path: Path, target_format: str, output_dir: Path, lossless: bool, force: bool
+    image_path: Union[str, Path],
+    target_format: str,
+    output_dir: Union[str, Path],
+    lossless: bool,
+    force: bool,
 ):
     """
     Converts a single image file to the target format and saves it in the
@@ -80,6 +84,9 @@ def convert_single_image(
     force:
         Whether to force overwrite an existing image if it exists.
     """
+
+    image_path = Path(image_path)
+    output_dir = Path(output_dir)
 
     # Convert the image to the target format
     target_filename = f"{image_path.stem}.{target_format}"

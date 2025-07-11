@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "file_utilities"
-version = "1.3.0"
+version = "1.4.0"
 description = "A collection of Python scripts to simplify various file-related tasks."
 authors = [{ name = "Shane Bonkowski", email = "3ravens3@gmail.com" }]
 dependencies = [
@@ -17,9 +17,9 @@ license = { text = "MIT" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 
 [project.scripts]
-image_convert = "file_utilities.image.image_convert:main"
-image_resize = "file_utilities.image.image_resize:main"
-docx_to_written_content = "file_utilities.shane_bonkowski_dot_com.docx_to_written_content:main"
+image_convert = "file_utilities.tools.image_convert:main"
+image_resize = "file_utilities.tools.image_resize:main"
+docx_to_written_content = "file_utilities.tools.docx_to_written_content:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

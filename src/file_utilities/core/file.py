@@ -1,4 +1,3 @@
-import functools
 import shutil
 from pathlib import Path
 from typing import Optional, Union, Callable, TypeVar
@@ -24,7 +23,14 @@ class File:
 
     @property
     def size(self) -> Optional[int]:
-        """Returns the size of the File."""
+        """
+        Size of the File.
+
+        Returns
+        -------
+        size:
+            Size of the file in bytes. If the file does not exist, returns 0.
+        """
         if self.path.exists():
             return self.path.stat().st_size
         else:
@@ -32,7 +38,15 @@ class File:
 
     @property
     def modified_at(self) -> Optional[float]:
-        """Returns the modified_at time of the File."""
+        """
+        Returns the modified_at time of the File.
+
+        Returns
+        -------
+        modified_at:
+            The last modified time of the file as a Unix timestamp (float).
+            If the file does not exist, returns None.
+        """
         if self.path.exists():
             return self.path.stat().st_mtime
         else:
@@ -40,7 +54,15 @@ class File:
 
     @property
     def created_at(self) -> Optional[float]:
-        """Returns the created_at time of the File."""
+        """
+        Returns the created_at time of the File.
+
+        Returns
+        -------
+        created_at:
+            The creation time of the file as a Unix timestamp (float).
+            If the file does not exist, returns None.
+        """
         if self.path.exists():
             return getattr(self.path.stat(), "st_birthtime", None)
         else:
@@ -68,11 +90,31 @@ class File:
             f.write(data if data is not None else self.read())
 
     def copy(self, destination_path: Union[str, Path]):
-        """Copies the file to the given destination."""
+        """
+        Copies the file to the given destination.
+
+        Parameters
+        ----------
+        destination_path:
+            The path to copy the file to. If the destination is a directory,
+            the file will be copied into that directory with the same name.
+            If the destination is a file, the file will be copied to that exact
+            location.
+        """
         shutil.copy(self.path, Path(destination_path).resolve())
 
     def rename(self, new_name: str):
-        """Renames the file without changing its directory."""
+        """
+        Renames the file without changing its directory.
+
+        Parameters
+        ----------
+        new_name:
+            The new name for the file. If the new name does not include the
+            file extension, the original file extension will be preserved.
+            If the new name includes a different file extension, the file will
+            be renamed with the new extension.
+        """
 
         if not new_name.endswith(self.path.suffix):
             new_name += self.path.suffix
@@ -81,7 +123,17 @@ class File:
         self.move(new_path)
 
     def move(self, destination_path: Union[str, Path]):
-        """Moves the file to the given destination."""
+        """
+        Moves the file to the given destination.
+
+        Parameters
+        ----------
+        destination_path:
+            The path to move the file to. If the destination is a directory,
+            the file will be moved into that directory with the same name.
+            If the destination is a file, the file will be moved to that exact
+            location.
+        """
         shutil.move(self.path, Path(destination_path).resolve())
         self.path = Path(destination_path).resolve()
 

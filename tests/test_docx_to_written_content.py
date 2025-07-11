@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from file_utilities.shane_bonkowski_dot_com.docx_to_written_content import (
+from file_utilities.tools.docx_to_written_content import (
     convert_docx_to_written_content,
 )
 from conftest import TEST_DATA_DIR
