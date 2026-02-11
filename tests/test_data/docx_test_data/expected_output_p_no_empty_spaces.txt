@@ -1,4 +1,4 @@
-<WrittenContentLoader {...storyData}>
+<WrittenContentLoader {...storyMetadata}>
         <WrittenContentParagraphGroup>
           <WrittenContentParagraphElement
             fontStyle="normal"

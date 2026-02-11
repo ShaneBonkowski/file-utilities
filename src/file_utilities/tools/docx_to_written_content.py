@@ -68,7 +68,7 @@ def convert_docx_to_written_content(
         jsx_paragraphs.append(jsx_element)
 
     # Create the full JSX template for all paragraphs together
-    jsx_output = f"""<WrittenContentLoader {{...storyData}}>
+    jsx_output = f"""<WrittenContentLoader {{...storyMetadata}}>
         <WrittenContentParagraphGroup>
 {'\n\n'.join(jsx_paragraphs)}
         </WrittenContentParagraphGroup>
